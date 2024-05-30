@@ -1,1 +1,1 @@
-=MID(A1, FIND(":", A1) + 1 + LEN(TRIM(MID(A1, FIND(":", A1) + 1, LEN(A1)))), LEN(A1))
+=MID(C1, FIND(" ", C1, FIND(":", C1) + 1) + 1, LEN(C1))
