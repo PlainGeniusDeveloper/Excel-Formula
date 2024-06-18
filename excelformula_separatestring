@@ -1,1 +1,56 @@
-=MID(C1, FIND(" ", C1, FIND(":", C1) + 1) + 1, LEN(C1))
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Site Migration Notice</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+        .banner {
+            background-color: #ff9800;
+            color: white;
+            text-align: center;
+            padding: 20px 0;
+            font-size: 1.5em;
+        }
+        .container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            background-color: white;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+        h1 {
+            color: #ff9800;
+        }
+        p {
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="banner">
+        Important Notice: We're Moving!
+    </div>
+    <div class="container">
+        <h1>Site Migration Notice</h1>
+        <p>Dear Valued Visitors,</p>
+        <p>We are excited to announce that we are in the process of migrating our website to a new and improved platform to better serve you. During this transition period, you may experience temporary disruptions in accessing some features or information. Rest assured, our team is working diligently to minimize any inconvenience.</p>
+        <p><strong>What you need to know:</strong></p>
+        <ul>
+            <li><strong>Dates of Migration:</strong> [Specify dates if known]</li>
+            <li><strong>Impact:</strong> Some pages or features may be temporarily unavailable.</li>
+            <li><strong>Support:</strong> Our customer support team is available to assist with any questions or issues.</li>
+        </ul>
+        <p>We appreciate your patience and understanding during this period of growth and improvement. Thank you for being a valued part of our community.</p>
+        <p>Sincerely,<br>[Your Company Name]</p>
+    </div>
+</body>
+</html>
