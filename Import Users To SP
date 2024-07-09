@@ -6,12 +6,13 @@
 </head>
 <body>
     <input type="file" id="uploadJsonFile" />
-    <button id="importDataBtn">Import Data</button>
+    <button id="importDataBtn" type="button">Import Data</button>
     
     <script type="text/javascript">
         $(document).ready(function() {
             var jsonData;
 
+            // Read JSON file and store data
             $("#uploadJsonFile").change(function(event) {
                 var file = event.target.files[0];
                 var reader = new FileReader();
@@ -21,19 +22,47 @@
                 reader.readAsText(file);
             });
 
+            // Handle the import button click
             $("#importDataBtn").click(function() {
                 if (!jsonData) {
                     alert("Please upload a JSON file first.");
                     return;
                 }
 
-                for (var i = 0; i < jsonData.length; i++) {
-                    var groupTitle = jsonData[i].GroupTitle;
-                    var emails = jsonData[i].Emails.split("; ").filter(Boolean);
-                    createGroup(groupTitle, emails);
-                }
+                jsonData.forEach(function(group) {
+                    var groupTitle = group.GroupTitle;
+                    var emails = group.Emails.split("; ").filter(Boolean);
+                    processGroup(groupTitle, emails);
+                });
             });
 
+            // Check if group exists, create if not, then add users
+            function processGroup(groupTitle, emails) {
+                $.ajax({
+                    url: _spPageContextInfo.webAbsoluteUrl + "/_api/web/sitegroups?$filter=Title eq '" + groupTitle + "'",
+                    method: "GET",
+                    headers: {
+                        "Accept": "application/json; odata=verbose"
+                    },
+                    success: function(data) {
+                        if (data.d.results.length > 0) {
+                            var groupId = data.d.results[0].Id;
+                            console.log("Group " + groupTitle + " exists with ID " + groupId);
+                            removeUsersFromGroup(groupId, function() {
+                                addUsersToGroup(groupId, emails);
+                            });
+                        } else {
+                            console.log("Group " + groupTitle + " does not exist. Creating group.");
+                            createGroup(groupTitle, emails);
+                        }
+                    },
+                    error: function(error) {
+                        console.error("Error checking for group " + groupTitle + ": ", error);
+                    }
+                });
+            }
+
+            // Create group and then add users
             function createGroup(groupTitle, emails) {
                 $.ajax({
                     url: _spPageContextInfo.webAbsoluteUrl + "/_api/web/sitegroups",
@@ -49,16 +78,16 @@
                     }),
                     success: function(data) {
                         var groupId = data.d.Id;
-                        removeUsersFromGroup(groupId, function() {
-                            addUsersToGroup(groupId, emails);
-                        });
+                        console.log("Created group " + groupTitle + " with ID " + groupId);
+                        addUsersToGroup(groupId, emails);
                     },
                     error: function(error) {
-                        console.log(JSON.stringify(error));
+                        console.error("Error creating group " + groupTitle + ": ", error);
                     }
                 });
             }
 
+            // Remove all users from group before adding new ones
             function removeUsersFromGroup(groupId, callback) {
                 $.ajax({
                     url: _spPageContextInfo.webAbsoluteUrl + "/_api/web/sitegroups/getbyid(" + groupId + ")/users",
@@ -68,21 +97,18 @@
                     },
                     success: function(data) {
                         var users = data.d.results;
-                        var promises = [];
-                        for (var i = 0; i < users.length; i++) {
-                            var userId = users[i].Id;
-                            promises.push(removeUserFromGroup(groupId, userId));
-                        }
-                        $.when.apply($, promises).done(function() {
-                            callback();
+                        var promises = users.map(function(user) {
+                            return removeUserFromGroup(groupId, user.Id);
                         });
+                        $.when.apply($, promises).done(callback);
                     },
                     error: function(error) {
-                        console.log(JSON.stringify(error));
+                        console.error("Error fetching users for group ID " + groupId + ": ", error);
                     }
                 });
             }
 
+            // Remove a single user from group
             function removeUserFromGroup(groupId, userId) {
                 return $.ajax({
                     url: _spPageContextInfo.webAbsoluteUrl + "/_api/web/sitegroups/getbyid(" + groupId + ")/users/removebyid(" + userId + ")",
@@ -95,14 +121,14 @@
                         console.log("User ID " + userId + " removed from group ID " + groupId);
                     },
                     error: function(error) {
-                        console.log(JSON.stringify(error));
+                        console.error("Error removing user ID " + userId + " from group ID " + groupId + ": ", error);
                     }
                 });
             }
 
+            // Add users to the group
             function addUsersToGroup(groupId, emails) {
-                for (var i = 0; i < emails.length; i++) {
-                    var email = emails[i];
+                emails.forEach(function(email) {
                     $.ajax({
                         url: _spPageContextInfo.webAbsoluteUrl + "/_api/web/sitegroups/getbyid(" + groupId + ")/users/add",
                         method: "POST",
@@ -119,10 +145,10 @@
                             console.log("User " + email + " added to group ID " + groupId);
                         },
                         error: function(error) {
-                            console.log(JSON.stringify(error));
+                            console.error("Error adding user " + email + " to group ID " + groupId + ": ", error);
                         }
                     });
-                }
+                });
             }
         });
     </script>
