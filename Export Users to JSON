@@ -5,7 +5,7 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
-    <button id="exportDataBtn">Export Data</button>
+    <button id="exportDataBtn" type="button">Export Data</button>
     <pre id="jsonData" style="display: none;"></pre>
     
     <script type="text/javascript">
@@ -20,14 +20,11 @@
                     },
                     success: function(data) {
                         var groups = data.d.results;
-                        var promises = [];
-                        for (var i = 0; i < groups.length; i++) {
-                            var groupId = groups[i].Id;
-                            var groupName = groups[i].Title;
-                            promises.push(getGroupEmails(groupId, groupName, allGroupsData));
-                        }
+                        var groupPromises = groups.map(function(group) {
+                            return getGroupEmails(group.Id, group.Title, allGroupsData);
+                        });
 
-                        $.when.apply($, promises).done(function() {
+                        Promise.all(groupPromises).then(function() {
                             var jsonData = JSON.stringify(allGroupsData, null, 2);
                             $("#jsonData").text(jsonData).show();
                             download("sharepoint_groups.json", jsonData);
@@ -48,10 +45,9 @@
                     },
                     success: function(data) {
                         var users = data.d.results;
-                        var emailList = [];
-                        for (var i = 0; i < users.length; i++) {
-                            emailList.push(users[i].Email);
-                        }
+                        var emailList = users.map(function(user) {
+                            return user.Email;
+                        });
                         allGroupsData.push({
                             "GroupTitle": groupName,
                             "Emails": emailList.join("; ")
