@@ -1,43 +1,57 @@
-$(document).ready(function () {
-  $.ajax({
-    url: _spPageContextInfo.webAbsoluteUrl + "/_api/web/sitegroups",
-    method: "GET",
-    headers: {
-      Accept: "application/json; odata=verbose",
-    },
-    success: function (data) {
-      var groups = data.d.results;
-      for (var i = 0; i < groups.length; i++) {
-        var groupId = groups[i].Id;
-        getGroupEmail(groupId);
-      }
-    },
-    error: function (error) {
-      console.log(JSON.stringify(error));
-    },
-  });
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script type="text/javascript">
+    $(document).ready(function() {
+        // Fetch all groups
+        $.ajax({
+            url: _spPageContextInfo.webAbsoluteUrl + "/_api/web/sitegroups",
+            method: "GET",
+            headers: {
+                "Accept": "application/json; odata=verbose"
+            },
+            success: function(data) {
+                var groups = data.d.results;
+                for (var i = 0; i < groups.length; i++) {
+                    var groupId = groups[i].Id;
+                    var groupName = groups[i].Title;
+                    getGroupEmails(groupId, groupName);
+                }
+            },
+            error: function(error) {
+                console.log(JSON.stringify(error));
+            }
+        });
 
-  function getGroupEmail(groupId) {
-    $.ajax({
-      url:
-        _spPageContextInfo.webAbsoluteUrl +
-        "/_api/web/sitegroups/getbyid(" +
-        groupId +
-        ")/users",
-      method: "GET",
-      headers: {
-        Accept: "application/json; odata=verbose",
-      },
-      success: function (data) {
-        var users = data.d.results;
-        for (var i = 0; i < users.length; i++) {
-          var userEmail = users[i].Email;
-          console.log("Group ID: " + groupId + " - User Email: " + userEmail);
+        // Fetch email IDs of a specific group
+        function getGroupEmails(groupId, groupName) {
+            $.ajax({
+                url: _spPageContextInfo.webAbsoluteUrl + "/_api/web/sitegroups/getbyid(" + groupId + ")/users",
+                method: "GET",
+                headers: {
+                    "Accept": "application/json; odata=verbose"
+                },
+                success: function(data) {
+                    var users = data.d.results;
+                    var emailList = "";
+                    for (var i = 0; i < users.length; i++) {
+                        var userEmail = users[i].Email;
+                        emailList += "<li>" + userEmail + "</li>";
+                    }
+                    displayEmails(groupName, emailList);
+                },
+                error: function(error) {
+                    console.log(JSON.stringify(error));
+                }
+            });
         }
-      },
-      error: function (error) {
-        console.log(JSON.stringify(error));
-      },
+
+        // Display emails on the page
+        function displayEmails(groupName, emailList) {
+            var container = $("#groupEmailsContainer");
+            var groupBlock = "<div class='group-block'>" +
+                             "<h3>" + groupName + "</h3>" +
+                             "<ul>" + emailList + "</ul>" +
+                             "</div>";
+            container.append(groupBlock);
+        }
     });
-  }
-});
+</script>
